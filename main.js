@@ -80,9 +80,9 @@ app.post('/consultar', (req, res) => {
 });
 console.log('executei-3');  
 const options = {
-  key: fs.readFileSync('/home/sqlhelper/ssl/privkey.pem'),
-  cert: fs.readFileSync('/home/sqlhelper/ssl/cert.pem'),
-  //ca: fs.readFileSync('/home/sqlhelper/ssl/ca.pem')  // Adicione essa linha se estiver usando um certificado de autoridade certificadora
+  //key: fs.readFileSync('/privkey.pem'),
+  //cert: fs.readFileSync('/cert.pem'),
+  //ca: fs.readFileSync('/ca.pem')  // Adicione essa linha se estiver usando um certificado de autoridade certificadora
 };
 
 let server;
