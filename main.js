@@ -1,13 +1,20 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const fetch = require('node-fetch');
-const https = require('https');
-const fs = require('fs');
-const port = process.env.port || 5000;
+const cors = require('cors');
+const port = process.env.PORT || 8081;
 const app = express();
+const { validarCep } = require('./validations');
+
 app.use(bodyParser.json());
 
-app.get('/main/', (req, res) => {
+const corsOptions = {
+  origin: 'https://apex.oracle.com',
+};
+
+app.use(cors(corsOptions));
+
+app.get('/', (req, res) => {
   res.send('Ola, esta aplicacao esta rodando em NodeJS versao ' + process.version + ' na porta: ' + port);
 });
 
@@ -29,7 +36,7 @@ app.get('/teste', (req, res) => {
   res.sendStatus(200);
 });
 
-app.post('/consultar', (req, res) => {
+app.post('/consultar-teste', (req, res) => {
   console.log('executei-1');
   const url = "https://portal.kangu.com.br/tms/transporte/simular";
   const token = "b4b9beb7bce0c1dd89f43d5e9c2f560907b5471f7e44ba710bb43633acccc249";
@@ -78,30 +85,52 @@ app.post('/consultar', (req, res) => {
       res.status(500).json({ error: 'Erro ao consultar API externa' });
     });
 });
-console.log('executei-3');  
-const options = {
-  //key: fs.readFileSync('/privkey.pem'),
-  //cert: fs.readFileSync('/cert.pem'),
-  //ca: fs.readFileSync('/ca.pem')  // Adicione essa linha se estiver usando um certificado de autoridade certificadora
-};
 
-let server;
+app.post('/consultar-kangu', (req, res) => {
+  const { cepDestino, produto } = req.body;
 
-function startServer() {
-  if (!server || !server.listening) {
-    server = https.createServer(options, app);
-    server.listen(port, () => {
-      console.log("Servidor HTTPS iniciado na porta " + port);
-    });
-
-    server.on('error', function(e) {
-      console.log(e)
-    });
-  } else {
-    console.log('O servidor já está em execução.');
+  if (!cepDestino || !produto) {
+    return res.status(400).json({ error: 'Dados incompletos' });
   }
-}
 
-// Iniciar o servidor
-startServer();
+  if (!validarCep(cepDestino)) {
+    return res.status(400).json({ error: 'CEP de destino inválido' });
+  }
+
+  const url = "https://portal.kangu.com.br/tms/transporte/simular";
+  const token = "b4b9beb7bce0c1dd89f43d5e9c2f560907b5471f7e44ba710bb43633acccc249";
+
+  const bodyData = {
+    cepOrigem: "04781-000",
+    cepDestino: cepDestino,
+    vlrMerc: 600,
+    pesoMerc: 10,
+    produtos: [produto],
+  };
+
+  fetch(url, {
+    method: "POST",
+    headers: {
+      "token": token,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(bodyData)
+  })
+    .then(response => response.json())
+    .then(data => {
+      console.log(data);
+      res.header("Access-Control-Allow-Origin", "https://apex.oracle.com");
+      res.json(data);
+    })
+    .catch(error => {
+      console.error(error);
+      res.status(500).json({ error: 'Erro ao consultar API externa' });
+    });
+});
+
+
+app.listen(port, () => {
+  console.log(`Servidor rodando na porta ${port}`);
+});
+
 console.log('funcionei');
