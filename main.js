@@ -32,6 +32,10 @@ app.post('/webhook', (req, res) => {
   res.sendStatus(200);
 });
 
+app.head('/webhook', (req, res) => {
+  res.sendStatus(200);
+});
+
 app.get('/teste', (req, res) => {
   res.sendStatus(200);
 });
@@ -66,7 +70,7 @@ app.post('/consultar-teste', (req, res) => {
     vlrMerc: 600,
     pesoMerc: 10
   };
-  console.log('executei-2');
+
   fetch(url, {
     method: "POST",
     headers: {
@@ -77,7 +81,6 @@ app.post('/consultar-teste', (req, res) => {
   })
     .then(response => response.json())
     .then(data => {
-      console.log(data);
       res.send(data);
     })
     .catch(error => {
@@ -118,7 +121,6 @@ app.post('/consultar-kangu', (req, res) => {
   })
     .then(response => response.json())
     .then(data => {
-      console.log(data);
       res.header("Access-Control-Allow-Origin", "https://apex.oracle.com");
       res.json(data);
     })
@@ -132,5 +134,3 @@ app.post('/consultar-kangu', (req, res) => {
 app.listen(port, () => {
   console.log(`Servidor rodando na porta ${port}`);
 });
-
-console.log('funcionei');
