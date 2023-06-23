@@ -88,6 +88,38 @@ app.post('/consultar-teste', (req, res) => {
       res.status(500).json({ error: 'Erro ao consultar API externa' });
     });
 });
+app.post('/consultar-tiny', (req, res) => {
+  const url = "https://api.tiny.com.br/api2/produto.obter.php";
+  const token = "bc3cdea243d8687963fa642580057531456d34fa";
+  const produto_id = req.body.produto_id;
+  const formato = "json";
+  console.log(req.body.produto_id);
+  
+  const params = new URLSearchParams({
+    token: token,
+    id: produto_id,
+    formato: formato
+  });
+
+  fetch(url + '?' + params)
+    .then(response => response.json())
+    .then(data => {
+      // Obter os valores do peso e valor do produto do objeto retornado
+
+      console.log(data);
+      console.log(data.retorno.produto);
+
+      const peso = data.retorno.produto.peso_bruto;
+      const valor = data.retorno.produto.preco;
+
+      // Retornar os valores como resposta da rota
+      res.json({ peso: peso, valor: valor });
+    })
+    .catch(error => {
+      console.error(error);
+      res.status(500).json({ error: "Erro ao consultar a API do Tiny" });
+    });
+});
 
 app.post('/consultar-kangu', (req, res) => {
   const { cepDestino, produto } = req.body;
