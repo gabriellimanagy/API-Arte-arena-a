@@ -2,14 +2,14 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const fetch = require('node-fetch');
 const cors = require('cors');
-const port = process.env.PORT || 8081;
+const port = process.env.PORT || 8050;
 const app = express();
 const { validarCep } = require('./validations');
 
 app.use(bodyParser.json());
 
 const corsOptions = {
-  origin: 'https://apex.oracle.com',
+  origin: '*',
 };
 
 app.use(cors(corsOptions));
@@ -88,32 +88,25 @@ app.post('/consultar-teste', (req, res) => {
       res.status(500).json({ error: 'Erro ao consultar API externa' });
     });
 });
-app.post('/consultar-tiny', (req, res) => {
+app.get('/consultar-tiny', cors(corsOptions), (req, res) => {
   const url = "https://api.tiny.com.br/api2/produto.obter.php";
   const token = "bc3cdea243d8687963fa642580057531456d34fa";
-  const produto_id = req.body.produto_id;
+  const produto_id = req.query.id;
   const formato = "json";
-  console.log(req.body.produto_id);
-  
+  console.log(req);
   const params = new URLSearchParams({
     token: token,
     id: produto_id,
     formato: formato
   });
-
+  
   fetch(url + '?' + params)
     .then(response => response.json())
     .then(data => {
-      // Obter os valores do peso e valor do produto do objeto retornado
-
       console.log(data);
-      console.log(data.retorno.produto);
-
-      const peso = data.retorno.produto.peso_bruto;
-      const valor = data.retorno.produto.preco;
 
       // Retornar os valores como resposta da rota
-      res.json({ peso: peso, valor: valor });
+      res.json(data);
     })
     .catch(error => {
       console.error(error);
@@ -121,12 +114,9 @@ app.post('/consultar-tiny', (req, res) => {
     });
 });
 
-app.post('/consultar-kangu', (req, res) => {
-  const { cepDestino, produto } = req.body;
 
-  if (!cepDestino || !produto) {
-    return res.status(400).json({ error: 'Dados incompletos' });
-  }
+app.post('/consultar-kangu', cors(corsOptions) ,(req, res, next) => {
+  const { cepDestino, vlrMerc, pesoMerc, produto } = req.body;
 
   if (!validarCep(cepDestino)) {
     return res.status(400).json({ error: 'CEP de destino inválido' });
@@ -138,8 +128,8 @@ app.post('/consultar-kangu', (req, res) => {
   const bodyData = {
     cepOrigem: "04781-000",
     cepDestino: cepDestino,
-    vlrMerc: 600,
-    pesoMerc: 10,
+    vlrMerc: vlrMerc,
+    pesoMerc: pesoMerc,
     produtos: [produto],
   };
 
@@ -153,7 +143,7 @@ app.post('/consultar-kangu', (req, res) => {
   })
     .then(response => response.json())
     .then(data => {
-      res.header("Access-Control-Allow-Origin", "https://apex.oracle.com");
+      res.header("Access-Control-Allow-Origin", "http://127.0.0.1:8000");
       res.json(data);
     })
     .catch(error => {
