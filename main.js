@@ -143,7 +143,6 @@ app.post('/consultar-kangu', cors(corsOptions) ,(req, res, next) => {
   })
     .then(response => response.json())
     .then(data => {
-      res.header("Access-Control-Allow-Origin", "http://127.0.0.1:8000");
       res.json(data);
     })
     .catch(error => {
